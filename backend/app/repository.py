@@ -21,6 +21,20 @@ UPDATE_RATING = text(
 )
 
 
+SELECT_STAFF_BY_EMAIL = text(
+    """
+    SELECT id, email, password_hash
+    FROM staff
+    WHERE email = :email
+    """
+)
+
+
+def get_staff_by_email(conn, email: str):
+    """Return the staff row (id, email, password_hash) or None."""
+    return conn.execute(SELECT_STAFF_BY_EMAIL, {"email": email}).first()
+
+
 def insert_conversation(conn, row: dict) -> int:
     return conn.execute(INSERT_CONVERSATION, row).scalar_one()
 

@@ -9,6 +9,7 @@ ENV_FILE = Path(__file__).resolve().parents[1] / ".env"
 class Settings(BaseSettings):
     database_url: str = ""
     jwt_secret: str = "change-me"
+    jwt_expiry_hours: int = 8
     enable_llm_assist: bool = False
 
     model_config = SettingsConfigDict(env_file=ENV_FILE, env_file_encoding="utf-8", extra="ignore")
