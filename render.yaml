@@ -1,0 +1,21 @@
+# Render blueprint for the Arc Lite backend.
+# Create it in Render with: New > Blueprint > connect this repository.
+# DATABASE_URL is entered in the Render dashboard (sync: false) so the password never lives in Git.
+services:
+  - type: web
+    name: arc-lite-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ENABLE_LLM_ASSIST
+        value: "false"
