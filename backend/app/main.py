@@ -8,6 +8,7 @@ from .chat import router as chat_router
 from .db import engine
 from .errors import install_error_handlers
 from .faq_index import faq_index, load_entries
+from .stats import router as stats_router
 
 
 @asynccontextmanager
@@ -25,6 +26,7 @@ install_error_handlers(app)
 app.include_router(chat_router)
 app.include_router(auth_router)
 app.include_router(admin_router)
+app.include_router(stats_router)
 
 
 @app.get("/health")
