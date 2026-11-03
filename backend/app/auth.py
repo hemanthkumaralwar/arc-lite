@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 
 import bcrypt
 import jwt
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 
 from .config import settings
 from .db import engine
@@ -57,6 +57,43 @@ def create_access_token(staff_id: int, email: str) -> tuple[str, int]:
     return token, int(lifetime.total_seconds())
 
 
+REQUIRED_CLAIMS = ["sub", "email", "role", "iat", "exp"]
+
+
+def require_staff(authorization: str | None = Header(default=None)) -> dict:
+    """Dependency for staff-only routes.
+
+    401 when the token is missing, malformed, badly signed, expired, or has the wrong algorithm.
+    403 when the token is valid but its role is not 'staff'.
+    """
+    if not signing_secret_is_strong():
+        raise HTTPException(status_code=503, detail="Sign-in is not configured.")
+
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Sign in is required.")
+
+    token = authorization[len("Bearer "):].strip()
+    if not token:
+        raise HTTPException(status_code=401, detail="Sign in is required.")
+
+    try:
+        claims = jwt.decode(
+            token,
+            settings.jwt_secret,
+            algorithms=[JWT_ALGORITHM],  # pinned: rejects "alg": "none" and other algorithms
+            options={"require": REQUIRED_CLAIMS},
+        )
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Your session has expired. Please sign in again.")
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Your session is not valid. Please sign in again.")
+
+    if claims.get("role") != "staff":
+        raise HTTPException(status_code=403, detail="Staff access only.")
+
+    return claims
+
+
 router = APIRouter()
 
 
@@ -83,4 +120,13 @@ def login(body: LoginRequest) -> dict:
         "token_type": "bearer",
         "expires_in": expires_in,
         "role": "staff",
+    }
+
+
+@router.get("/auth/me")
+def me(claims: dict = Depends(require_staff)) -> dict:
+    return {
+        "staff_id": int(claims["sub"]),
+        "email": claims["email"],
+        "role": claims["role"],
     }
