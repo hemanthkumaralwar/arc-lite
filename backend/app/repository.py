@@ -35,6 +35,48 @@ def get_staff_by_email(conn, email: str):
     return conn.execute(SELECT_STAFF_BY_EMAIL, {"email": email}).first()
 
 
+LIST_FAQ = text(
+    """
+    SELECT id, category, keywords, canonical_answer, created_at, updated_at
+    FROM faq_entries
+    ORDER BY id
+    """
+)
+
+INSERT_FAQ = text(
+    """
+    INSERT INTO faq_entries (category, keywords, canonical_answer)
+    VALUES (:category, :keywords, :canonical_answer)
+    RETURNING id, category, keywords, canonical_answer, created_at, updated_at
+    """
+)
+
+UPDATE_FAQ = text(
+    """
+    UPDATE faq_entries
+    SET category = :category,
+        keywords = :keywords,
+        canonical_answer = :canonical_answer,
+        updated_at = now()
+    WHERE id = :id
+    RETURNING id, category, keywords, canonical_answer, created_at, updated_at
+    """
+)
+
+
+def list_faq_entries(conn):
+    return conn.execute(LIST_FAQ).all()
+
+
+def insert_faq_entry(conn, data: dict):
+    return conn.execute(INSERT_FAQ, data).one()
+
+
+def update_faq_entry(conn, entry_id: int, data: dict):
+    """Return the updated row, or None if no entry has that id."""
+    return conn.execute(UPDATE_FAQ, {**data, "id": entry_id}).first()
+
+
 def insert_conversation(conn, row: dict) -> int:
     return conn.execute(INSERT_CONVERSATION, row).scalar_one()
 

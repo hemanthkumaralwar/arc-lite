@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from .admin import router as admin_router
 from .auth import router as auth_router
 from .chat import router as chat_router
 from .db import engine
@@ -23,6 +24,7 @@ app = FastAPI(title="Arc Lite API", version="0.1.0", lifespan=lifespan)
 install_error_handlers(app)
 app.include_router(chat_router)
 app.include_router(auth_router)
+app.include_router(admin_router)
 
 
 @app.get("/health")
