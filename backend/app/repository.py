@@ -77,6 +77,20 @@ def update_faq_entry(conn, entry_id: int, data: dict):
     return conn.execute(UPDATE_FAQ, {**data, "id": entry_id}).first()
 
 
+DELETE_FAQ = text(
+    """
+    DELETE FROM faq_entries
+    WHERE id = :id
+    RETURNING id
+    """
+)
+
+
+def delete_faq_entry(conn, entry_id: int) -> bool:
+    """Return True if an entry was deleted, False if no entry has that id."""
+    return conn.execute(DELETE_FAQ, {"id": entry_id}).first() is not None
+
+
 def insert_conversation(conn, row: dict) -> int:
     return conn.execute(INSERT_CONVERSATION, row).scalar_one()
 

@@ -1,10 +1,12 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from .admin import router as admin_router
 from .auth import router as auth_router
 from .chat import router as chat_router
+from .config import settings
 from .db import engine
 from .errors import install_error_handlers
 from .faq_index import faq_index, load_entries
@@ -23,6 +25,13 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Arc Lite API", version="0.1.0", lifespan=lifespan)
 install_error_handlers(app)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origin_list,  # explicit list, never "*"
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["Authorization", "Content-Type"],
+)
 app.include_router(chat_router)
 app.include_router(auth_router)
 app.include_router(admin_router)

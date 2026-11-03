@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from .auth import require_staff
 from .db import engine
 from .faq_index import faq_index, load_entries
-from .repository import insert_faq_entry, list_faq_entries, update_faq_entry
+from .repository import delete_faq_entry, insert_faq_entry, list_faq_entries, update_faq_entry
 from .schemas import FaqInput
 
 router = APIRouter()
@@ -73,3 +73,18 @@ def update_faq(entry_id: int, body: FaqInput, _staff: dict = Depends(require_sta
             raise HTTPException(status_code=404, detail="FAQ entry not found.")
         _refresh_index()
     return _serialize(row)
+
+
+@router.delete("/admin/faq/{entry_id}")
+def delete_faq(entry_id: int, _staff: dict = Depends(require_staff)) -> dict:
+    _require_database()
+    if entry_id < 1 or entry_id > MAX_ENTRY_ID:
+        raise HTTPException(status_code=404, detail="FAQ entry not found.")
+
+    with _faq_write_lock:
+        with engine.begin() as conn:
+            deleted = delete_faq_entry(conn, entry_id)
+        if not deleted:
+            raise HTTPException(status_code=404, detail="FAQ entry not found.")
+        _refresh_index()
+    return {"id": entry_id, "deleted": True}
