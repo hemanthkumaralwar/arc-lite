@@ -101,7 +101,7 @@ Staff accounts can't be created from the website. They're managed by the team as
 1. Open Command Prompt in the `backend` folder and run:
    ```
    venv\Scripts\activate
-   python scripts\seed.py
+   python scripts\create_staff.py
    ```
 2. Enter the new person's email address.
 3. Enter a password of at least 10 characters, then type it again to confirm. The characters don't show on screen.
