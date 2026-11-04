@@ -42,7 +42,8 @@
         ok: false,
         status: 0,
         data: null,
-        error: "Could not reach the Arc Lite server. Check the API address in config.js.",
+        error: "Could not reach the Arc Lite server at " + API_BASE + ". Check the address in config.js, " +
+          "that the Render service is Live, and that CORS_ORIGINS on Render includes this website's address.",
       };
     }
 
