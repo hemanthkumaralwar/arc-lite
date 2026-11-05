@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     jwt_secret: str = "change-me"
     jwt_expiry_hours: int = 8
     enable_llm_assist: bool = False
+    gemini_api_key: str = ""
+    gemini_model: str = "gemini-2.5-flash"
     # Comma-separated list of frontend origins allowed to call the API from a browser.
     cors_origins: str = "http://127.0.0.1:5500,http://localhost:5500"
 

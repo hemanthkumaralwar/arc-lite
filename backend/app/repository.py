@@ -5,7 +5,7 @@ INSERT_CONVERSATION = text(
     INSERT INTO conversations
         (question, answer, category, matched_faq_id, verdict, score, response_ms, llm_used)
     VALUES
-        (:question, :answer, :category, :matched_faq_id, :verdict, :score, :response_ms, FALSE)
+        (:question, :answer, :category, :matched_faq_id, :verdict, :score, :response_ms, :llm_used)
     RETURNING id
     """
 )

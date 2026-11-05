@@ -39,12 +39,29 @@ def reply_for(decision: Decision) -> tuple[str, str]:
 
 
 RecordFn = Callable[[dict], int]
+RewriteFn = Callable[[str], str | None]
 
 
-def answer_question(question: str, index: FaqIndex, record: RecordFn) -> ChatResult:
+def answer_question(
+    question: str,
+    index: FaqIndex,
+    record: RecordFn,
+    rewrite: RewriteFn | None = None,
+) -> ChatResult:
     started = perf_counter()
     ranked = index.rank(question)
     decision = decide(ranked)
+    llm_used = False
+
+    # The LLM can only upgrade a reply. If the original question was already Answered,
+    # or the rewrite does not produce an Answered verdict, the original result stands.
+    if decision.verdict != "Answered" and rewrite is not None:
+        rewritten = rewrite(question)
+        if rewritten:
+            alternative = decide(index.rank(rewritten))
+            if alternative.verdict == "Answered":
+                decision = alternative
+                llm_used = True
     answer_type, reply_text = reply_for(decision)
     # Timing covers matching and reply building. The database write happens after it,
     # so storage latency is not counted as response time.
@@ -59,6 +76,7 @@ def answer_question(question: str, index: FaqIndex, record: RecordFn) -> ChatRes
             "verdict": decision.verdict,
             "score": decision.score,
             "response_ms": response_ms,
+            "llm_used": llm_used,
         }
     )
 

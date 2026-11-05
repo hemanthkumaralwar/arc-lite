@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException
 from .chat_service import answer_question
 from .db import engine
 from .faq_index import faq_index
+from .llm_assist import rewrite_query
 from .repository import insert_conversation, update_rating
 from .schemas import ChatRequest, RatingRequest
 
@@ -22,6 +23,7 @@ def chat(body: ChatRequest) -> dict:
             body.question,
             faq_index,
             lambda row: insert_conversation(conn, row),
+            rewrite=rewrite_query,
         )
 
     return {
