@@ -37,6 +37,9 @@ CREATE INDEX IF NOT EXISTS conversations_created_at_idx ON conversations (create
 CREATE INDEX IF NOT EXISTS conversations_category_verdict_idx ON conversations (category, verdict);
 CREATE INDEX IF NOT EXISTS conversations_verdict_rating_idx ON conversations (verdict, rating);
 
+ALTER TABLE conversations ADD COLUMN IF NOT EXISTS llm_status TEXT
+    CHECK (llm_status IN ('not_called', 'no_rewrite', 'not_better', 'used'));
+
 CREATE TABLE IF NOT EXISTS staff (
     id            BIGSERIAL PRIMARY KEY,
     email         TEXT NOT NULL UNIQUE

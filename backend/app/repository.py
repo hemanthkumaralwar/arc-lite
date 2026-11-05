@@ -3,9 +3,9 @@ from sqlalchemy import text
 INSERT_CONVERSATION = text(
     """
     INSERT INTO conversations
-        (question, answer, category, matched_faq_id, verdict, score, response_ms, llm_used)
+        (question, answer, category, matched_faq_id, verdict, score, response_ms, llm_used, llm_status)
     VALUES
-        (:question, :answer, :category, :matched_faq_id, :verdict, :score, :response_ms, :llm_used)
+        (:question, :answer, :category, :matched_faq_id, :verdict, :score, :response_ms, :llm_used, :llm_status)
     RETURNING id
     """
 )

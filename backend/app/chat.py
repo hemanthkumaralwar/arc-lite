@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
 from .chat_service import answer_question
+from .config import settings
 from .db import engine
 from .faq_index import faq_index
 from .llm_assist import rewrite_query
@@ -23,7 +24,7 @@ def chat(body: ChatRequest) -> dict:
             body.question,
             faq_index,
             lambda row: insert_conversation(conn, row),
-            rewrite=rewrite_query,
+            rewrite=rewrite_query if (settings.enable_llm_assist and settings.gemini_api_key) else None,
         )
 
     return {

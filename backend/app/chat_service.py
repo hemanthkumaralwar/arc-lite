@@ -52,16 +52,22 @@ def answer_question(
     ranked = index.rank(question)
     decision = decide(ranked)
     llm_used = False
+    llm_status = "not_called"
 
     # The LLM can only upgrade a reply. If the original question was already Answered,
     # or the rewrite does not produce an Answered verdict, the original result stands.
     if decision.verdict != "Answered" and rewrite is not None:
         rewritten = rewrite(question)
-        if rewritten:
+        if not rewritten:
+            llm_status = "no_rewrite"
+        else:
             alternative = decide(index.rank(rewritten))
             if alternative.verdict == "Answered":
                 decision = alternative
                 llm_used = True
+                llm_status = "used"
+            else:
+                llm_status = "not_better"
     answer_type, reply_text = reply_for(decision)
     # Timing covers matching and reply building. The database write happens after it,
     # so storage latency is not counted as response time.
@@ -77,6 +83,7 @@ def answer_question(
             "score": decision.score,
             "response_ms": response_ms,
             "llm_used": llm_used,
+            "llm_status": llm_status,
         }
     )
 

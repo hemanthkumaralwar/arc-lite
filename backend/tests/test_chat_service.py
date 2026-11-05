@@ -91,6 +91,7 @@ def test_record_receives_every_column_the_table_needs():
         "score",
         "response_ms",
         "llm_used",
+        "llm_status",
     }
 
 
