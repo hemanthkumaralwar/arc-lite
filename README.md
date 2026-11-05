@@ -44,6 +44,60 @@ The first load can take up to a minute, because the free server wakes up after a
 
 ---
 
+## Developer setup
+
+Run these in Command Prompt. Use the `backend` folder unless the step says otherwise.
+
+### 1. Create the virtual environment and install packages
+
+```
+cd backend
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Run `venv\Scripts\activate` each time you open a new Command Prompt. The prompt shows `(venv)` when it's active.
+
+### 2. Copy the Neon connection string into `.env`
+
+1. Sign in to neon.tech and open your project.
+2. Click **Connect** and copy the connection string.
+3. In `backend`, copy `.env.example.env` to `.env` if it doesn't exist yet:
+   ```
+   copy .env.example.env .env
+   ```
+4. Open `.env` in Notepad. Replace the `DATABASE_URL` line with the string you copied, starting with `DATABASE_URL=`. Also set `JWT_SECRET` to a random value of at least 32 characters.
+5. Save with **UTF-8** encoding. Never commit `.env` to GitHub.
+
+### 3. Run `migrate.py` whenever the schema changes
+
+Run this after pulling changes that edit `app\schema.sql`, and before deploying them:
+```
+venv\Scripts\activate
+python scripts\migrate.py
+```
+The script is safe to run more than once. It only adds what's missing.
+
+### 4. Add the Gemini secrets in Render
+
+The Gemini key is stored as a secret file, not in the code or in GitHub.
+
+1. In Render, open **arc-lite-api**, then **Environment**.
+2. Scroll to **Secret Files** and click **Add Secret File**.
+3. **Filename:** `gemini.env`
+4. **Contents:**
+   ```
+   GEMINI_API_KEY=your-key-here
+   GEMINI_MODEL=gemini-3.1-flash-lite
+   ```
+5. Click **Save**. Render redeploys.
+6. Confirm that `ENABLE_LLM_ASSIST` is set to `true` in the **Environment** list.
+
+To get a key, sign in at aistudio.google.com and create one there.
+
+---
+
 ## For the deployment team
 
 ### What runs where
