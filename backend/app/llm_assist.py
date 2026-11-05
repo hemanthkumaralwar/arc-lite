@@ -21,8 +21,14 @@ MAX_REWRITE_WORDS = 12
 MAX_REWRITE_CHARS = 120
 MAX_OUTPUT_TOKENS = 64
 
+# Kept only for scripts/test_gemini.py. Students never see these values.
+last_error: str | None = None
+last_raw: str | None = None
+
 SYSTEM_PROMPT = (
-    "You rewrite a student's question into a short English search phrase of at most 12 words, "
+    "You rewrite a student's question into a short English search phrase of at most 12 words. "
+    "Fix spelling mistakes first, for example 'cetificate' means 'certificate' and 'sertificate' "
+    "means 'certificate'. Translate to English if needed. Keep only the words that matter, "
     "about ArchintX courses, certificates, jobs, or accounts. "
     "Output only the phrase, on one line, with no quotes, no punctuation other than commas, "
     "and no explanation. Do not answer the question. Do not add facts."
@@ -51,6 +57,9 @@ def validate_rewrite(text) -> str | None:
 
 def rewrite_query(question: str) -> str | None:
     """Ask the LLM for a search phrase. Returns None on any problem."""
+    global last_error, last_raw
+    last_error = None
+    last_raw = None
     if not settings.enable_llm_assist or not settings.gemini_api_key:
         return None
 
@@ -77,8 +86,13 @@ def rewrite_query(question: str) -> str | None:
         )
         response.raise_for_status()
         text = response.json()["candidates"][0]["content"]["parts"][0]["text"]
-    except Exception:
-        # Deliberately silent: the student still gets the normal, deterministic answer.
+    except Exception as exc:
+        # Silent for students: they still get the normal, deterministic answer.
+        if isinstance(exc, httpx.HTTPStatusError):
+            last_error = f"HTTP {exc.response.status_code}: {exc.response.text[:300]}"
+        else:
+            last_error = f"{type(exc).__name__}: {exc}"
         return None
 
+    last_raw = text
     return validate_rewrite(text)
